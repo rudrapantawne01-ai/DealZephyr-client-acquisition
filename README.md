@@ -20,15 +20,15 @@ npm run build
 ## Demo path (under a minute)
 
 1. Start on **Overview** and point to projected runway and the cash chart.
-2. Open **Scenario Lab** and move the four hire start months to October 2026. The chart, burn, headcount, and runway update immediately.
-3. Select **Revenue Downside** or **Hiring + Revenue Downside**. Show the cash difference and scenario comparison.
-4. Open **Decision** to see the tradeoffs, then **Decision Brief** to show the Sprint output. Use **Print / save PDF** for a sample handout.
+2. Choose **Run 60-second demo** for a guided Base → Aggressive Hiring → Hiring + Revenue Downside → Decision story, or use **Now / In 30 / 60 / 90 days** to move all planned hires live.
+3. Open **Scenario Lab** for the same quick hiring control plus detailed revenue, cost, role and funding inputs. The charts and runway update immediately.
+4. Open **Decision** to see scenario-specific tradeoffs, then **Decision Brief** to show the Sprint output. Use **Print / save PDF** for a sample handout.
 
 **Presentation mode** hides the navigation and gives quick scenario switching on screen share. Saved custom scenarios use this browser's local storage only.
 
 ## Calculation method and assumptions
 
-The pure model lives in `src/lib/model.ts`; the fictional baseline and prepared scenarios live in `src/lib/demo-data.ts`. React components display model output and do not calculate the financial results.
+The pure model lives in `src/lib/model.ts`; the fictional baseline and prepared scenarios live in `src/lib/demo-data.ts`. React components display model output and do not calculate the financial results. `src/lib/decision.ts` derives illustrative recommendations from those projections using explicit thresholds; no API or generated advice is involved.
 
 - The model starts in October 2026 with $2.55M cash, $280k MRR ($3.36M ARR), 34 employees, $353.6k current monthly payroll, $134k other monthly operating expense, $22k cloud expense, and 90% core gross margin **before** cloud. This yields about 82.1% current gross margin and $257.6k current monthly net burn.
 - Revenue in month *n* is starting MRR × (1 + monthly growth rate)^*n* × (1 − downside rate). Base monthly growth is 3.45%, a deliberately optimistic illustrative assumption. The downside rate is a persistent percentage reduction to the projected revenue path.
@@ -38,6 +38,8 @@ The pure model lives in `src/lib/model.ts`; the fictional baseline and prepared 
 - The base plan projects about 11.6 months of runway after scheduled hiring. The same baseline without planned hires projects about 12.8 months. The prepared downside changes this through its revenue assumption. These are calculated outputs, not fixed display values.
 - “Current” ARR, MRR, cash, burn and headcount show the opening position before scheduled hires or a future downside. Scenario outputs show projected results and use a 12-month ending cash comparison.
 
+Illustrative recommendation rules prefer delayed hiring when selected runway is under 10.5 months, month-12 cash is below −$250k, or revenue downside is at least 5%; otherwise they prefer staggered starts. All numbers in the guidance come from the model.
+
 The model is intentionally simple: no collections lag, taxes, debt, working capital, churn cohorts, bookings conversion, variable cloud scaling, or role-specific productivity. These are inputs a real 7-Day Finance Decision Sprint would validate and model using the company’s actual data. No real client data or advice is represented here.
 
 ## Main files
@@ -45,13 +47,15 @@ The model is intentionally simple: no collections lag, taxes, debt, working capi
 - `src/lib/model.ts` — calculation engine, monthly projection, zero-cash runway.
 - `src/lib/demo-data.ts` — fictional baseline and saved scenario presets.
 - `src/lib/model.test.ts` — calculation and scenario tests.
+- `src/lib/decision.ts` and `src/lib/decision.test.ts` — deterministic, scenario-specific demo guidance and tests.
+- `public/dealzephyr-logo.png` — exact official logo asset supplied by DealZephyr.
 - `src/components/dashboard.tsx` — overview, controls, comparison, decision, presentation mode, brief.
 - `src/components/charts.tsx` — responsive cash, burn, revenue/expense, and headcount charts.
 - `src/app/globals.css` — screen, responsive, and print styles.
 
 ## Print
 
-Open **Decision Brief** and choose **Print / save PDF**. The browser’s PDF destination uses the print stylesheet, sized for A4. For best color fidelity, enable background graphics in the print dialog. The fictional-data disclaimer remains on the brief.
+Open **Decision Brief** and choose **Print / save PDF**. The browser’s PDF destination uses the print stylesheet, sized for A4. Enable background graphics for best color fidelity and turn off the browser’s **Headers and footers** option. The fictional-data disclaimer remains on the brief.
 
 ## Optional browser smoke QA
 
