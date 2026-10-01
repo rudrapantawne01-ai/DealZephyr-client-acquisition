@@ -10,6 +10,15 @@ import { BurnChart, CashChart, HeadcountChart, RevenueExpenseChart } from './cha
 
 type Section = 'overview' | 'lab' | 'decision' | 'brief';
 const departments: Department[] = ['Engineering', 'Sales', 'Product', 'Customer Success', 'Operations'];
+// A public booking URL can be supplied at build time. Until then the CTA is absent.
+const bookingUrl = (() => {
+  try {
+    const url = new URL(process.env.NEXT_PUBLIC_BOOKING_URL || '');
+    return url.protocol === 'https:' ? url.toString() : null;
+  } catch {
+    return null;
+  }
+})();
 const sections: { id: Section; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'lab', label: 'Scenario Lab', icon: SlidersHorizontal },
@@ -36,6 +45,10 @@ function Comparison({ selected, selectedName }: { selected: Assumptions; selecte
 }
 function ModelFlow() { return <div className="model-flow"><div className="flow-heading"><span className="eyebrow">THE DEALZEPHYR METHOD</span><h2>Make the decision before the spend.</h2></div><div className="flow-steps">{['Operating decision', 'Financial model', 'Scenarios', 'Cash · burn · runway', 'Decision'].map((step, i) => <div className="flow-step" key={step}><span>0{i + 1}</span><b>{step}</b>{i < 4 && <ArrowRight size={16} />}</div>)}</div></div>; }
 function Sprint() { return <section className="sprint"><div><div className="eyebrow">THIS DEMO → YOUR COMPANY</div><h2>7-Day Finance<br />Decision Sprint<span>.</span></h2><p>We replace this fictional data with your actual company, assumptions and decision. You leave with the model, the scenarios, and a recommendation on the decision you came in with.</p><div className="sprint-price">$2,499 <span>fixed sprint price</span></div></div><div className="sprint-days">{[['01','Understand the decision and gather inputs'],['02–03','Build and review the operating model'],['04–05','Run scenarios and stress-test assumptions'],['06','Develop recommendations and decision brief'],['07','Founder readout']].map(([day, desc]) => <div key={day}><span>DAY {day}</span><b>{desc}</b></div>)}</div></section>; }
+function BookingCta() {
+  if (!bookingUrl) return null;
+  return <section className="booking-cta"><div><div className="eyebrow">FROM DEMO TO YOUR DECISION</div><h2>Want this built around your company?</h2><p>DealZephyr’s 7-Day Finance Decision Sprint models the decision using your actual operating and financial assumptions.</p></div><a className="primary-button" href={bookingUrl} target="_blank" rel="noopener noreferrer">Book a Finance Diagnostic <ArrowRight size={15} /></a></section>;
+}
 function QuickHireTiming({ assumptions, onMove, compact = false }: { assumptions: Assumptions; onMove: (months: number) => void; compact?: boolean }) {
   const selected = [0, 1, 2, 3].find(months => assumptions.hires.length > 0 && assumptions.hires.every(h => h.startMonth === addMonths(assumptions.startingMonth, months)));
   return <div className={`quick-hire ${compact ? 'quick-hire-compact' : ''}`}><div><div className="eyebrow">TRY ONE DECISION</div><h2>What happens if we hire faster?</h2><p>Move all {assumptions.hires.length} planned starts together. The cash, burn and runway views update immediately.</p></div><div className="quick-hire-actions" role="group" aria-label="Move all planned hires">{[['Now', 0], ['In 30 days', 1], ['In 60 days', 2], ['In 90 days', 3]].map(([label, months]) => <button type="button" key={label} disabled={!assumptions.hires.length} className={selected === months ? 'active' : ''} onClick={() => onMove(months as number)}>{label}</button>)}</div></div>;
@@ -85,7 +98,7 @@ function Overview({ assumptions, selectedName, onGoLab, onGoDecision, onMoveHire
     <div className="chart-grid"><div className="panel chart-card"><PanelTitle eyebrow="PACE OF SPEND" title="Monthly net burn" /><BurnChart months={projection.months} /></div><div className="panel chart-card"><PanelTitle eyebrow="OPERATING TRAJECTORY" title="Revenue vs. expenses" action={<div className="chart-legend"><span><i className="legend-revenue" />Revenue</span><span><i className="legend-selected" />Expenses</span></div>} /><RevenueExpenseChart months={projection.months} /></div><div className="panel chart-card"><PanelTitle eyebrow="CAPACITY" title="Headcount over time" /><HeadcountChart months={projection.months} /></div><div className="panel chart-card"><PanelTitle eyebrow="TIME TO ZERO CASH" title="Runway" /><RunwayChart selected={assumptions} /></div></div>
     <Comparison selected={assumptions} selectedName={selectedName} />
     <section className="plan-section"><div className="plan-heading"><div><div className="eyebrow">THE INPUTS BEHIND THE OUTPUT</div><h2>Current operating plan</h2></div><button className="text-link" onClick={onGoLab}>Edit assumptions <ArrowRight size={15} /></button></div><div className="plan-grid"><div className="plan-card"><div className="eyebrow">01 / HIRING PLAN</div><h3>{assumptions.hires.length} planned roles</h3>{assumptions.hires.length ? assumptions.hires.map(h => <div className="plan-row" key={h.id}><span>{h.role}<small>{h.department}</small></span><b>{monthName(h.startMonth)}</b></div>) : <p>No hires currently scheduled.</p>}</div><div className="plan-card"><div className="eyebrow">02 / REVENUE ASSUMPTIONS</div><h3>Growth path</h3><div className="plan-row"><span>Starting MRR</span><b>{money(assumptions.startingMRR)}</b></div><div className="plan-row"><span>Monthly growth</span><b>{pct(assumptions.revenueGrowthPct)}</b></div><div className="plan-row"><span>Revenue downside</span><b>{pct(assumptions.revenueDownsidePct)}</b></div><div className="plan-row"><span>Core gross margin</span><b>{pct(assumptions.coreGrossMarginPct)}</b></div></div><div className="plan-card"><div className="eyebrow">03 / MAJOR COSTS</div><h3>Monthly commitments</h3><div className="plan-row"><span>Current payroll</span><b>{money(assumptions.currentPayroll)}</b></div><div className="plan-row"><span>Cloud infrastructure</span><b>{money(assumptions.cloudMonthly)}</b></div><div className="plan-row"><span>Other operating expenses</span><b>{money(assumptions.otherOpexMonthly)}</b></div><div className="plan-row"><span>Hires, once all started</span><b>{money(assumptions.hires.reduce((n,h) => n + h.monthlyCost, 0))}</b></div></div></div></section>
-    <ModelFlow /><Sprint />
+    <ModelFlow /><Sprint /><BookingCta />
   </>;
 }
 function Lab({ assumptions, update, selectedName, onSave, onMoveHires }: { assumptions: Assumptions; update: (fn: (a: Assumptions) => Assumptions) => void; selectedName: string; onSave: () => void; onMoveHires: (months: number) => void }) {

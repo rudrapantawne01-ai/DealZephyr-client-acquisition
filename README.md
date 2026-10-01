@@ -5,7 +5,7 @@ A focused, interactive sales asset for showing how DealZephyr models operating d
 ## Run locally
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -16,6 +16,20 @@ npm test
 npm run typecheck
 npm run build
 ```
+
+## Cloudflare deployment
+
+This App Router project exports static HTML and JavaScript. All scenario calculations and saved views run in the browser, so the demo deploys as a dedicated **Cloudflare Worker with Static Assets** named `dealzephyr-sales-demo`. The official logo is copied unchanged into the static output. Local `npm run dev` remains a normal Next.js development server.
+
+```bash
+npm ci
+npm run preview:cloudflare  # builds and serves the Worker assets locally
+npm run deploy              # builds and deploys the separate Worker
+```
+
+The Worker custom domain must be added only after checking that `demo.dealzephyr.com` has no existing DNS record, Worker route, or custom domain. Attach **only** `demo.dealzephyr.com` as a Cloudflare Worker Custom Domain, which provisions its DNS record and TLS certificate. The repository intentionally contains no broad routes and no bindings to the main site, D1, Access, or other Cloudflare services.
+
+The HTML includes `noindex, nofollow` metadata; prospects can still open the direct URL. The single **Book a Finance Diagnostic** section appears only when a valid HTTPS `NEXT_PUBLIC_BOOKING_URL` is supplied at build time. Leave it unset to keep the CTA hidden. It is a public build-time value, not a secret. No booking URL is currently configured.
 
 ## Demo path (under a minute)
 
